@@ -1,0 +1,25 @@
+- name: Redeploy configuration-dashboard
+  hosts: all
+  become: yes
+  tasks:
+    - name: "Check if configuration-dashboard is up"
+      shell: docker service ps {{item}}
+      with_items:
+        - vizix_configuration-dashboard
+
+    - name: Stop configuration-dashboard
+      shell: docker service rm vizix_configuration-dashboard
+      args:
+        chdir: /opt/vizix/shopcx
+
+    - name: Start configuration-dashboard
+      shell: docker stack deploy vizix --with-registry-auth -c configuration-dashboard.yaml
+      args:
+        chdir: /opt/vizix/shopcx
+
+    - name: Wait until configuration-dashboard is up
+      shell: docker service ls | grep vizix_configuration-dashboard
+      register: tools_status
+      until: tools_status.stdout.find('1/1') != -1
+      delay: 30
+      retries: 20
