@@ -1,0 +1,25 @@
+- name: Redeploy vizix_statemachine
+  hosts: all
+  become: yes
+  tasks:
+    - name: "Check if vizix_statemachine is up"
+      shell: docker service ps {{item}}
+      with_items:
+        - vizix_statemachine-api-dashboard-configuration
+
+    - name: Stop vizix_statemachine
+      shell: docker service scale vizix_statemachine-api-dashboard-configuration=0
+      args:
+        chdir: /opt/vizix/shopcx
+
+    - name: Start vizix_statemachine
+      shell: docker service scale vizix_statemachine-api-dashboard-configuration=1
+      args:
+        chdir: /opt/vizix/shopcx
+
+    - name: Wait until vizix_statemachine is up
+      shell: docker service ls | grep vizix_statemachine
+      register: tools_status
+      until: tools_status.stdout.find('1/1') != -1
+      delay: 30
+      retries: 20
