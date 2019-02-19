@@ -8,12 +8,12 @@
         - vizix_statemachine-api-dashboard-configuration
 
     - name: Stop vizix_statemachine
-      shell: docker service scale vizix_statemachine-api-dashboard-configuration=0
+      shell: docker service rm vizix_statemachine-api-dashboard-configuration
       args:
         chdir: /opt/vizix/shopcx
 
     - name: Start vizix_statemachine
-      shell: docker service scale vizix_statemachine-api-dashboard-configuration=1
+      shell: docker stack deploy vizix --with-registry-auth -c statemachine-api-dashboard-configuration.yaml
       args:
         chdir: /opt/vizix/shopcx
 
